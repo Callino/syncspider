@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sync_hook,access_sync_hook,model_sync_hook,syncspider.group_syncspider,1,1,1,1
+access_sync_event,access_sync_event,model_sync_event,syncspider.group_syncspider,1,1,1,1

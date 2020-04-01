@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+       <record id="sync_hook_form" model="ir.ui.view">
+           <field name="name">Sync Hook</field>
+           <field name="model">sync.hook</field>
+           <field name="arch" type="xml">
+               <form string="Sync Hook">
+                   <sheet>
+                       <div class="oe_title">
+                           <h1><field name="name" nolabel="1" palceholder="Name"/></h1>
+                       </div>
+                       <group>
+                           <group>
+                               <field name="record_ref"/>
+                               <field name="model" readonly="1"/>
+                               <field name="record_id" readonyl="1"/>
+                           </group>
+                           <group>
+                               <field name="on_create"/>
+                               <field name="on_update"/>
+                               <field name="on_delete"/>
+                               <field name="webhook_url"/>
+                           </group>
+                       </group>
+                       <label for="event_ids"/>
+                       <field name="event_ids" nolable="1">
+                           <tree>
+                               <field name="name"/>
+                               <field name="done"/>
+                               <field name="failed"/>
+                               <field name="trycount"/>
+                               <field name="nexttry"/>
+                               <field name="last_http_code"/>
+                           </tree>
+                           <form>
+                               <group>
+                                   <field name="name"/>
+                                   <field name="done"/>
+                                   <field name="failed"/>
+                                   <field name="trycount"/>
+                                   <field name="nexttry"/>
+                                   <field name="last_http_code"/>
+                                   <field name="last_http_response"/>
+                               </group>
+                               <label for="payload"/>
+                               <field name="payload" nolabel="1"/>
+                           </form>
+                       </field>
+                   </sheet>
+               </form>
+           </field>
+       </record>
+
+        <record id="sync_hook_tree" model="ir.ui.view">
+           <field name="name">Sync Hook</field>
+           <field name="model">sync.hook</field>
+            <field name="arch" type="xml">
+                <tree string="Sync Hooks">
+                    <field name="sequence" widget="handle"/>
+                    <field name="name"/>
+                    <field name="record_ref"/>
+                    <field name="on_create"/>
+                    <field name="on_update"/>
+                    <field name="on_delete"/>
+                    <field name="webhook_url"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="sync_hook_action" model="ir.actions.act_window">
+            <field name="name">Sync Hook Action</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">sync.hook</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                <!-- Add Text Here -->
+              </p><p>
+                <!-- More details about what a user can do with this object will be OK -->
+              </p>
+            </field>
+        </record>
+
+        <!-- This Menu Item must have a parent and an action -->
+        <menuitem id="sync_hook_menu" name="Sync Hooks" parent="base.next_id_9" action="sync_hook_action" sequence="99"/>
+    </data>
+</odoo>
