@@ -48,12 +48,10 @@ class SyncHook(models.Model):
         self._update_vals(vals)
         return super(SyncHook, self).create(vals)
 
-    @api.multi
     def write(self, vals):
         self._update_vals(vals)
         return super(SyncHook, self).write(vals)
 
-    @api.multi
     def create_event(self, operation, record):
         self.ensure_one()
         # Create write event
@@ -129,7 +127,6 @@ class SyncEvent(models.Model):
             new_cr.close()
             return {}
 
-    @api.multi
     def run_async(self):
         # We do start a new environment in a new thread - and try the http request in this thread
         http_request = threading.Timer(interval=5, function=self._do_http_request, kwargs={'events': self})
