@@ -6,8 +6,9 @@
         Provide webhooks to integrate with syncspider
     """,
 
-    'author': "Callino (wpichler@callino.at)",
-    'website': "https://www.callino.at",
+    'author': "Syncspider (hello@syncspider.com)",
+    'maintainer': "Syncspider (support@syncspider.com)",
+    'website': "https://www.syncspider.com",
 
     # Categories can be used to filter modules in modules listing
     # Check https://github.com/odoo/odoo/blob/12.0/odoo/addons/base/data/ir_module_category_data.xml
