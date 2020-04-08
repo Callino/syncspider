@@ -2,6 +2,8 @@
 Syncspider
 ============
 
+.. image:: ./static/description/icon.png
+
 This module will allow you to set event trigger for create, update and unlink on any model.
 
 Installation
@@ -27,6 +29,20 @@ Configuration
 =============
 
 Configuration of Sync hooks is needed for this module to work. These can be set here: Settings/Technical/Database Structure/Sync Hooks
+
+You'll need tobe in group Other/Syncspider Web Hooks for this.
+
+.. image:: ./static/description/s3.png
+
+Setup a hook by setting the "Record Reference" to the desired model. You can limit to a single record by giving a "Record ID". 0 Means all records of the model.
+You can choose any of the Triggers, but keep in mind they'd all call the same webhook URL. So if you'd like to trigger a different call for create than for unlink setup 2 sync hooks.
+"Webhook" is the URL which will be called when an event triggers.
+
+.. image:: ./static/description/s1.png
+
+The list at the bottom of the for will fill up over time with information about the state of your events.
+
+.. image:: ./static/description/s2.png
 
 Usage
 =============
