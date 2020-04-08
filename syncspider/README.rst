@@ -3,6 +3,9 @@ Syncspider
 ============
 
 .. image:: ./static/description/icon.png
+   :scale: 25
+   :width: 512
+   :height: 512
 
 This module will allow you to set event trigger for create, update and unlink on any model.
 
