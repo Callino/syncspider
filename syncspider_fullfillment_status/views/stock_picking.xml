@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="stock_picking_fullfillment_status" model="ir.ui.view">
+            <field name="name">stock_picking_fullfillment_status</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.view_picking_form"/>
+            <field name="arch" type="xml">
+
+                <xpath expr="//group[@name='other_infos']" position="inside">
+                    <field name="fullfillment_status"/>
+                </xpath>
+
+            </field>
+        </record>
+
+    </data>
+</odoo>

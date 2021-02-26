@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Inherit Form View to Modify it -->
+        <record id="account_move_fullfillment_status" model="ir.ui.view">
+            <field name="name">account_move_fullfillment_status</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="arch" type="xml">
+
+                <xpath expr="//group[@id='other_tab_group']" position="inside">
+                    <group string="Fullfillment">
+                        <field name="fullfillment_status"/>
+                    </group>
+                </xpath>
+
+            </field>
+        </record>
+
+    </data>
+</odoo>
