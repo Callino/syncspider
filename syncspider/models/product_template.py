@@ -56,4 +56,5 @@ class ProductTemplate(models.Model):
                             t_value = att_line.value_ids.filtered(lambda v: v.id == value['value_id'])
                             if t_value:
                                 att_line.value_ids -= self.env['product.attribute.value'].browse(value['value_id'])
+        templates.create_variant_ids()
         return templates.get_template_json()
