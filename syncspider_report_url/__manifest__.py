@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "Syncspider Integration",
+    'name': "Syncspider Report URL",
 
     'description': """
-        Provide webhooks to integrate with syncspider
+        Adds URL's for report download
     """,
 
     'author': "Syncspider (hello@syncspider.com)",
@@ -14,17 +14,13 @@
     # Check https://github.com/odoo/odoo/blob/12.0/odoo/addons/base/data/ir_module_category_data.xml
     # for the full list
     'category': 'Tools',
-    'version': '14.0.1.0',
+    'version': '15.0.1.0.0',
     "license": "LGPL-3",
     # any module necessary for this one to work correctly
-    'depends': ['base', 'mail', 'product'],
+    'depends': ['syncspider', 'account'],
 
     # always loaded
     'data': [
-        'security/group.xml',
-        'security/ir.model.access.csv',
-        'views/sync_hook.xml',
-        'data/cron.xml',
     ],
     # only loaded in demonstration mode
     'demo': [
