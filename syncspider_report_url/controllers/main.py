@@ -16,7 +16,7 @@ _logger = logging.getLogger(__name__)
 class ReportDownloadController(ReportController):
 
     @http.route(['/pdf/dl/<rid>/<model>/<reportname>/<docids>'], type='http', auth="public")
-    def report_download(self, rid, model, reportname, docids, context=None):
+    def report_download_syncspider(self, rid, model, reportname, docids, context=None):
         """This function is used by 'action_manager_report.js' in order to trigger the download of
         a pdf/controller report.
 
