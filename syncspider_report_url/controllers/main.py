@@ -15,7 +15,7 @@ _logger = logging.getLogger(__name__)
 
 class ReportDownloadController(ReportController):
 
-    @http.route(['/pdf/download/<rid>/<model>/<reportname>/<docids>'], type='http', auth="public")
+    @http.route(['/pdf/dl/<rid>/<model>/<reportname>/<docids>'], type='http', auth="public")
     def report_download(self, rid, model, reportname, docids, context=None):
         """This function is used by 'action_manager_report.js' in order to trigger the download of
         a pdf/controller report.
@@ -25,6 +25,7 @@ class ReportDownloadController(ReportController):
         :returns: Response with an attachment header
 
         """
+        uid = request.uid
         request.uid = 1
         type = 'qweb-pdf'
         record = request.env[model].sudo().search([('report_ident', '=', rid)])
@@ -61,6 +62,8 @@ class ReportDownloadController(ReportController):
                 'data': se
             }
             return request.make_response(html_escape(json.dumps(error)))
+        finally:
+            request.uid = uid
 
     def report_routes_pub(self, reportname, docids=None, converter=None, **data):
         report = request.env['ir.actions.report'].sudo()._get_report_from_name(reportname)
