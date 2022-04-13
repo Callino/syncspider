@@ -8,6 +8,22 @@ _logger = logging.getLogger(__name__)
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
 
+    asin = fields.Char('ASIN', compute='_compute_asin', inverse='_set_asin', store=True)
+    distribution_channel_tag_ids = fields.Many2many('distribution.channel.tag', string="Vertriebskanäle")
+
+    @api.depends('product_variant_ids', 'product_variant_ids.default_code')
+    def _compute_asin(self):
+        unique_variants = self.filtered(lambda template: len(template.product_variant_ids) == 1)
+        for template in unique_variants:
+            template.asin = template.product_variant_ids.asin
+        for template in (self - unique_variants):
+            template.asin = False
+
+    def _set_asin(self):
+        for template in self:
+            if len(template.product_variant_ids) == 1:
+                template.product_variant_ids.asin = template.asin
+
     def get_template_json(self):
         jsondata = []
         for template in self:
@@ -68,3 +84,13 @@ class ProductTemplate(models.Model):
             for att_line in template.attribute_line_ids.filtered(lambda al: al.attribute_id.id not in used_attribute_ids):
                 att_line.unlink()
         return templates.get_template_json()
+
+
+class Product(models.Model):
+    _inherit = 'product.product'
+
+    asin = fields.Char(string="ASIN")
+    distribution_channel_tag_ids = fields.Many2many(
+        related="product_tmpl_id.distribution_channel_tag_ids",
+        readonly=True,
+    )

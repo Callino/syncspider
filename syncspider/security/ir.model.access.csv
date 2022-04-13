@@ -1,3 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_sync_hook,access_sync_hook,model_sync_hook,syncspider.group_syncspider,1,1,1,1
 access_sync_event,access_sync_event,model_sync_event,syncspider.group_syncspider,1,1,1,1
+access_product_distribution_channel,access_product_distribution_channel,model_distribution_channel_tag,,1,0,0,0
+access_product_distribution_channel_variant,access_product_distribution_channel_variant,model_distribution_channel_tag,product.group_product_variant,1,1,1,1
