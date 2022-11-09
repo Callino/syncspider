@@ -11,7 +11,7 @@ class ProductTemplate(models.Model):
     asin = fields.Char('ASIN', compute='_compute_asin', inverse='_set_asin', store=True)
     distribution_channel_tag_ids = fields.Many2many('distribution.channel.tag', string="Vertriebskanäle")
 
-    @api.depends('product_variant_ids', 'product_variant_ids.default_code')
+    @api.depends('product_variant_ids', 'product_variant_ids.asin')
     def _compute_asin(self):
         unique_variants = self.filtered(lambda template: len(template.product_variant_ids) == 1)
         for template in unique_variants:
