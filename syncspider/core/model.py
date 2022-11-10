@@ -47,29 +47,3 @@ def _check_syncspider(self, operation):
         return
 
 
-orig_write = models.Model.write
-
-def model_write(self, vals):
-    _check_syncspider(self, "write")
-    return orig_write(self, vals)
-
-models.Model.write = model_write
-
-
-orig_unlink = models.Model.unlink
-
-def model_unlink(self):
-    _check_syncspider(self, "unlink")
-    return orig_unlink(self)
-
-models.Model.unlink = model_unlink
-
-
-orig_create = models.Model._create
-
-def model_create(self, data_list=None):
-    record = orig_create(self, data_list)
-    _check_syncspider(record, "create")
-    return record
-
-models.Model._create = model_create

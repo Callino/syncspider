@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="product_tree_parent_ebay" model="ir.ui.view">
+            <field name="name">product_tree_parent_sku</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="product.product_product_tree_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='default_code']" position="after">
+                    <field name="ebay_category"/>
+                    <field name="ebay_shop_category"/>
+                </xpath>
+
+            </field>
+        </record>
+
+        <record id="product_marketplace" model="ir.ui.view">
+            <field name="name">product_marketplace</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="product.product_normal_form_view"/>
+            <field name="arch" type="xml">
+
+                <xpath expr="//page[@name='sales']/group[@name='sale']" position="before">
+                    <group string="Marketplace">
+                        <field name="ebay_category"/>
+                        <field name="ebay_shop_category"/>
+                    </group>
+                </xpath>
+
+            </field>
+        </record>
+
+        <record id="product_template_marketplace" model="ir.ui.view">
+            <field name="name">product_marketplace</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_only_form_view"/>
+            <field name="arch" type="xml">
+
+                <xpath expr="//page[@name='sales']/group[@name='sale']" position="before">
+                    <group string="Marketplace">
+                        <field name="ebay_category"/>
+                        <field name="ebay_shop_category"/>
+                    </group>
+                </xpath>
+
+            </field>
+        </record>
+
+        <record id="product_easy_edit_marketplace" model="ir.ui.view">
+            <field name="name">product_marketplace</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="product.product_variant_easy_edit_view"/>
+            <field name="arch" type="xml">
+
+                <xpath expr="//group[@name='codes']" position="after">
+                    <group string="Marketplace">
+                        <field name="ebay_category"/>
+                        <field name="ebay_shop_category"/>
+                    </group>
+                </xpath>
+
+            </field>
+        </record>
+
+    </data>
+</odoo>
