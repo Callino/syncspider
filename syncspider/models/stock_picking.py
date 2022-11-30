@@ -17,3 +17,4 @@ class StockPicking(models.Model):
                 except Exception as e:
                     _logger.info("Cannot write line qty at this point.")
             picking.button_validate()
+        return True
