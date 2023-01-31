@@ -3,7 +3,7 @@ import json
 import logging
 import werkzeug
 from werkzeug.urls import url_encode, url_decode, iri_to_uri
-from odoo.addons.web.controllers.main import ReportController
+from odoo.addons.web.controllers.report import ReportController
 
 from odoo.tools import html_escape
 from odoo.tools.safe_eval import safe_eval, time
@@ -26,7 +26,7 @@ class ReportDownloadController(ReportController):
 
         """
         uid = request.uid
-        request.uid = 1
+        request.update_env(user=1)
         type = 'qweb-pdf'
         record = request.env[model].sudo().search([('report_ident', '=', rid)])
         if not record:
@@ -63,7 +63,7 @@ class ReportDownloadController(ReportController):
             }
             return request.make_response(html_escape(json.dumps(error)))
         finally:
-            request.uid = uid
+            request.update_env(user=uid)
 
     def report_routes_pub(self, reportname, docids=None, converter=None, **data):
         report = request.env['ir.actions.report'].sudo()._get_report_from_name(reportname)
@@ -77,10 +77,10 @@ class ReportDownloadController(ReportController):
             data['context'] = json.loads(data['context'])
             context.update(data['context'])
         if converter == 'html':
-            html = report.sudo().with_context(context)._render_qweb_html(docids, data=data)[0]
+            html = report.sudo().with_context(context)._render_qweb_html(report.report_name, docids, data=data)[0]
             return request.make_response(html)
         elif converter == 'pdf':
-            pdf = report.sudo().with_context(context)._render_qweb_pdf(docids, data=data)[0]
+            pdf = report.sudo().with_context(context)._render_qweb_pdf(report.report_name, docids, data=data)[0]
             pdfhttpheaders = [('Content-Type', 'application/pdf'), ('Content-Length', len(pdf))]
             return request.make_response(pdf, headers=pdfhttpheaders)
         elif converter == 'text':
