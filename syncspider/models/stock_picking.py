@@ -15,6 +15,6 @@ class StockPicking(models.Model):
                 try:
                     line.write({'quantity_done': line.product_uom_qty, 'state': 'assigned'})
                 except Exception as e:
-                    _logger.info("Cannot write line qty at this point.")
+                    _logger.exception("Cannot write line qty at this point.")
             picking.button_validate()
         return True
