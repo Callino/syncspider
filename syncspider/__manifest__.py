@@ -26,6 +26,7 @@
         'views/sync_hook.xml',
         'views/distribution_channel.xml',
         'views/product.xml',
+        'views/stock_picking.xml',
         'views/res_config_settings.xml',
         'data/cron.xml',
     ],
