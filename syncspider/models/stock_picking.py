@@ -26,9 +26,10 @@ class StockPicking(models.Model):
         res = super(StockPicking, self).write(vals)
         if vals.get('state', '') == 'done':
             self.write({'already_done': True})
+            self._compute_detailed_state()
         if vals.get('date_done', False):
             self.write({'already_done': True})
-        self._compute_detailed_state()
+            self._compute_detailed_state()
         return res
 
     @api.depends('move_type', 'immediate_transfer', 'move_line_ids', 'move_lines.state', 'move_lines.picking_id', 'already_done')
