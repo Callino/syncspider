@@ -19,7 +19,7 @@ class StockPicking(models.Model):
         ('assigned', 'Bereit'),
         ('done', 'Erledigt'),
         ('cancel', 'Abgebrochen'),
-    ], string='Status', compute='_compute_detailed_state',
+    ], string='Status Syncspider', compute='_compute_detailed_state',
         copy=False, index=True, readonly=True, store=True, tracking=True)
 
     def write(self, vals):
@@ -28,9 +28,10 @@ class StockPicking(models.Model):
             self.write({'already_done': True})
         if vals.get('date_done', False):
             self.write({'already_done': True})
+        self._compute_detailed_state()
         return res
 
-    @api.depends('move_type', 'immediate_transfer', 'move_line_ids', 'move_lines.state', 'move_lines.picking_id')
+    @api.depends('move_type', 'immediate_transfer', 'move_line_ids', 'move_lines.state', 'move_lines.picking_id', 'already_done')
     def _compute_detailed_state(self):
         picking_moves_state_map = defaultdict(dict)
         picking_move_lines = defaultdict(set)
