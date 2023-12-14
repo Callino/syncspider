@@ -32,7 +32,7 @@ class StockPicking(models.Model):
             self._compute_detailed_state()
         return res
 
-    @api.depends('move_type', 'immediate_transfer', 'move_line_ids', 'move_lines.state', 'move_lines.picking_id', 'already_done')
+    @api.depends('move_type', 'immediate_transfer', 'move_line_ids', 'move_ids.state', 'move_ids.picking_id', 'already_done')
     def _compute_detailed_state(self):
         picking_moves_state_map = defaultdict(dict)
         picking_move_lines = defaultdict(set)
