@@ -27,9 +27,9 @@ class AccountMove(models.Model):
         country_at = self.env.ref("base.at").id
         country_de = self.env.ref("base.de").id
         invoice = super(AccountMove, self).create(vals)
-        if invoice.partner_shipping_id.country_id not in [country_at, country_de]:
+        if invoice.partner_shipping_id.country_id.id not in [country_at, country_de]:
             invoice.delivery_tariff = 'rest'
-        elif invoice.partner_shipping_id.country_id == country_de:
+        elif invoice.partner_shipping_id.country_id.id == country_de:
             invoice.delivery_tariff = 'DE'
         elif hasattr(invoice.partner_shipping_id, "b2b_b2c_type"):
             if invoice.partner_shipping_id.b2b_b2c_type == "b2c":
