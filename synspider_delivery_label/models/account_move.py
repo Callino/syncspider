@@ -59,11 +59,7 @@ class AccountMove(models.Model):
         values = self.get_webhook_data()
         label_str = "Versandlabel erstellt, %s, Gewicht %r, %s" % (datetime.now().strftime("%d.%m.%Y %H:%M"), self.delivery_weight, dict(self._fields['delivery_tariff'].selection).get(self.delivery_tariff))
         if not self.hook_id:
-            base_url = self.get_base_url()
-            webhook_url = "{}/delivery_label/{}".format(
-                base_url,
-                self.id,
-            )
+            webhook_url = self.env['ir.config_parameter'].sudo().get_param('label.webhook.url')
             hook = self.env['sync.hook'].sudo().create({
                 'name': "Labels %s" % self.name,
                 'record_ref': self.name,
