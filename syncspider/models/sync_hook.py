@@ -82,7 +82,50 @@ class SyncEvent(models.Model):
     last_http_response = fields.Text('HTTP Response')
 
     def _do_http_request(self, events):
-        return {}
+        with api.Environment.manage():
+            # As this function is in a new thread, I need to open a new cursor, because the old one may be closed
+            new_cr = events.pool.cursor()
+            events = events.with_env(events.env(cr=new_cr))
+            for event in events:
+                try:
+                    response = requests.post(event.hook_id.webhook_url, json=json.loads(event.payload), timeout=(2, 10))
+                    if response.status_code != 200:
+                        event.write({
+                            'trycount': event.trycount + 1,
+                            'nexttry': datetime.now() + timedelta(minutes=5 * (event.trycount + 1)),
+                            'last_http_response': response.text,
+                            'last_http_code': response.status_code,
+                            'failed': True,
+                            'done': False,
+                        })
+                    else:
+                        event.write({
+                            'nexttry': None,
+                            'last_http_response': response.text,
+                            'last_http_code': response.status_code,
+                            'failed': False,
+                            'done': True,
+                        })
+                except Timeout:
+                    event.write({
+                        'trycount': event.trycount + 1,
+                        'nexttry': datetime.now() + timedelta(minutes=5 * (event.trycount + 1)),
+                        'last_http_response': 'Timeout',
+                        'failed': True,
+                        'done': False,
+                    })
+                except Exception as e:
+                    event.write({
+                        'nexttry': datetime.now() + timedelta(minutes=5 * (event.trycount + 1)),
+                        'trycount': event.trycount + 1,
+                        'last_http_response': str(e),
+                        'failed': True,
+                        'done': False,
+                    })
+
+            new_cr.commit()
+            new_cr.close()
+            return {}
 
     def run_async(self):
         # We do start a new environment in a new thread - and try the http request in this thread
