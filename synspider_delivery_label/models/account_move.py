@@ -71,6 +71,7 @@ class AccountMove(models.Model):
         event = self.env['sync.event'].sudo().create({
             'name': label_str,
             'hook_id': self.hook_id.id,
+            'nexttry': datetime.now(),
             'payload': self.get_webhook_data()
         })
         event.run_async()
