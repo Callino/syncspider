@@ -61,8 +61,8 @@ class AccountMove(models.Model):
         if not self.hook_id:
             webhook_url = self.env['ir.config_parameter'].sudo().get_param('label.webhook.url')
             hook = self.env['sync.hook'].sudo().create({
-                'name': "Labels %s" % self.name,
-                'record_ref': self.name,
+                'name': "Labels %s" % (self.name or self.id),
+                'record_ref': self.name or self.id,
                 'model': 'account.move',
                 'record_id': self.id,
                 'webhook_url': webhook_url
