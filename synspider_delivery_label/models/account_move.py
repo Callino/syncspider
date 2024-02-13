@@ -41,14 +41,15 @@ class AccountMove(models.Model):
     def get_webhook_data(self):
         return json.dumps({
             'delivery_address': {
-                'firstname': self.partner_shipping_id.firstname if self.partner_shipping_id.firstname else '',
-                'lastname': self.partner_shipping_id.lastname if self.partner_shipping_id.lastname and self.partner_shipping_id.company_type != 'company' else '',
-                'company': self.partner_shipping_id.name if self.partner_shipping_id.company_type == 'company' else self.partner_shipping_id.parent_id.name if self.partner_shipping_id.parent_id else '',
+                'name': self.partner_shipping_id.name if self.partner_shipping_id.name else '',
+                'name_1': self.partner_shipping_id.name_1 if self.partner_shipping_id.name_1 else '',
+                'name_2': self.partner_shipping_id.name_2 if self.partner_shipping_id.name_2 else '',
+                # 'company': self.partner_shipping_id.name if self.partner_shipping_id.company_type == 'company' else self.partner_shipping_id.parent_id.name if self.partner_shipping_id.parent_id else '',
                 'street': self.partner_shipping_id.street,
-                'street_nr': self.partner_shipping_id.street_number,
+                # 'street_nr': self.partner_shipping_id.street_number,
                 'zip': self.partner_shipping_id.zip,
                 'city': self.partner_shipping_id.city,
-                'country_id': self.partner_shipping_id.country_id.name if self.partner_shipping_id.country_id else False,
+                'country_id': self.partner_shipping_id.country_id.code if self.partner_shipping_id.country_id else False,
             },
             'delivery_weight': self.delivery_weight,
             'delivery_tariff': dict(self._fields['delivery_tariff'].selection).get(self.delivery_tariff),
