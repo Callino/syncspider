@@ -52,7 +52,7 @@ class AccountMove(models.Model):
                 'country_id': self.partner_shipping_id.country_id.code if self.partner_shipping_id.country_id else False,
                 # kdnr, email und telefon
                 'telephone_mobile': self.partner_shipping_id.mobile or self.partner_shipping_id.phone or self.partner_shipping_id.commercial_partner_id.mobile or self.partner_shipping_id.commercial_partner_id.phone,
-                'customer_nr': self.partner_shipping_id.commercial_partner_id.,
+                'customer_nr': self.partner_shipping_id.commercial_partner_id.ref or '',
                 'email': self.partner_shipping_id.email or self.partner_shipping_id.commercial_partner_id.ref,
             },
             'delivery_weight': self.delivery_weight,
