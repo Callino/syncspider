@@ -4,8 +4,11 @@ from odoo import models, fields, api, _
 import json
 import threading
 import requests
+import logging
 from requests.exceptions import Timeout
 from datetime import datetime, timedelta
+
+_logger = logging.getLogger(__name__)
 
 
 class SyncHook(models.Model):
@@ -125,12 +128,18 @@ class SyncEvent(models.Model):
 
             new_cr.commit()
             new_cr.close()
+            _logger.info("Thread has finished")
             return {}
 
     def run_async(self):
         # We do start a new environment in a new thread - and try the http request in this thread
         http_request = threading.Timer(interval=5, function=self._do_http_request, kwargs={'events': self})
+        _logger.info("Starting async run of sync hook...")
         http_request.start()
+        try:
+            _logger.info("Thread %s has started" % (http_request.ident))
+        except:
+            _logger.warning("Thread has started (could not ident)")
 
     @api.model
     def cron_run_events(self):
