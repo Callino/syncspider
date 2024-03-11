@@ -10,9 +10,22 @@
             <field name="arch" type="xml">
 
                 <xpath expr="//group[@id='header_right_group']" position="inside">
-                    <field name="delivery_weight"/>
-                    <field name="delivery_tariff"/>
-                    <button name="send_delivery_webhook" type="object" string="Label erstellen"/>
+                    <!--<field name="delivery_weight"/>-->
+                    <label for="delivery_tariff"/>
+                    <div>
+                        <field name="delivery_tariff"/>
+                    </div>
+                    <label for="move_package_ids"/>
+                    <div>
+                        <field name="move_package_ids" nolabel="1">
+                            <tree editable="bottom">
+                                <field name="name"/>
+                                <field name="weight"/>
+                                <field name="move_id" invisible="1"/>
+                            </tree>
+                        </field>
+                        <button name="send_delivery_webhook" type="object" string="Label erstellen"/>
+                    </div>
                 </xpath>
 
             </field>

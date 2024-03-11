@@ -21,6 +21,7 @@ class AccountMove(models.Model):
         ('rest', _('Premium International Outbound B2B (Rest-EU B2B und B2C)'))
     ], string="Versandtarif")
     hook_id = fields.Many2one('sync.hook', string="Hook")
+    move_package_ids = fields.One2many('move.label.package', 'move_id', string="Pakete")
 
     @api.model_create_single
     def create(self, vals):
@@ -39,7 +40,7 @@ class AccountMove(models.Model):
         return invoice
 
     def get_webhook_data(self):
-        return json.dumps({
+        vals = {
             'delivery_address': {
                 'name': self.partner_shipping_id.name if self.partner_shipping_id.name else '',
                 'name_1': self.partner_shipping_id.name_1 if self.partner_shipping_id.name_1 else '',
@@ -55,10 +56,19 @@ class AccountMove(models.Model):
                 'customer_nr': self.partner_shipping_id.commercial_partner_id.ref or '',
                 'email': self.partner_shipping_id.email or self.partner_shipping_id.commercial_partner_id.ref,
             },
-            'delivery_weight': self.delivery_weight,
+            'packages': [],
+            'delivery_weight': sum(pack.weight for pack in self.move_package_ids),
             'delivery_tariff': dict(self._fields['delivery_tariff'].selection).get(self.delivery_tariff),
             'invoice': self.name
-        })
+        }
+        i = 1
+        for package in self.move_package_ids:
+            vals['packages'].append({
+                "package_no": i,
+                "delivery_weight": package.weight
+            })
+            i += 1
+        return json.dumps(vals)
 
     def send_delivery_webhook(self):
         values = self.get_webhook_data()

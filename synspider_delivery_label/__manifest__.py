@@ -19,7 +19,8 @@
 
     # always loaded
     'data': [
-        'views/account_move.xml'
+        'views/account_move.xml',
+        'security/ir.model.access.csv'
     ],
     'qweb': [
     ],
