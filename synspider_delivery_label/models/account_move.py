@@ -42,6 +42,9 @@ class AccountMove(models.Model):
     def get_webhook_data(self):
         vals = {
             'delivery_address': {
+                'firstname': self.partner_shipping_id.firstname if self.partner_shipping_id.firstname else '',
+                'lastname': self.partner_shipping_id.lastname if self.partner_shipping_id.lastname and self.partner_shipping_id.company_type != 'company' else '',
+                'company': self.partner_shipping_id.name if self.partner_shipping_id.company_type == 'company' else self.partner_shipping_id.parent_id.name if self.partner_shipping_id.parent_id else '',
                 'name': self.partner_shipping_id.name if self.partner_shipping_id.name else '',
                 'name_1': self.partner_shipping_id.name_1 if self.partner_shipping_id.name_1 else '',
                 'name_2': self.partner_shipping_id.name_2 if self.partner_shipping_id.name_2 else '',
