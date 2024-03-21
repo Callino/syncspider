@@ -57,7 +57,7 @@ class AccountMove(models.Model):
                 # kdnr, email und telefon
                 'telephone_mobile': self.partner_shipping_id.mobile or self.partner_shipping_id.phone or self.partner_shipping_id.commercial_partner_id.mobile or self.partner_shipping_id.commercial_partner_id.phone,
                 'customer_nr': self.partner_shipping_id.commercial_partner_id.ref or '',
-                'email': self.partner_shipping_id.email or self.partner_shipping_id.commercial_partner_id.ref,
+                'email': self.partner_shipping_id.email or self.partner_shipping_id.commercial_partner_id.email,
             },
             'packages': [],
             'delivery_weight': sum(pack.weight for pack in self.move_package_ids),
