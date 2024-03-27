@@ -25,6 +25,8 @@ class SaleOrder(models.Model):
         ('Unpaid', _('Unpaid')),
     ], string="Payment Status", readonly=True)
     auto_downpayment = fields.Boolean(string="Automatische Anzahlung", default=False)
+    shopify_delivery_method = fields.Char(string="Liefermethode", readonly=1)
+    shopify_delivery_amount = fields.Float(string="Lieferbetrag", readonly=1)
 
     def action_confirm(self):
         res = super(SaleOrder, self).action_confirm()
