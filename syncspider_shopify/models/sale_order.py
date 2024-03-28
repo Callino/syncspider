@@ -10,7 +10,7 @@ class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
     gateway = fields.Char(string="Gateway", readonly=True)
-    amount_received = fields.Float(string="Amount Received", readonly=False)
+    amount_received = fields.Float(string="Amount Received", readonly=True)
     payment_status = fields.Selection(selection=[
         ('Pending', _('Pending')),
         ('Authorized', _('Authorized')),
@@ -28,6 +28,14 @@ class SaleOrder(models.Model):
     shopify_delivery_method = fields.Char(string="Liefermethode", readonly=1)
     shopify_delivery_amount = fields.Float(string="Lieferbetrag", readonly=1)
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super(SaleOrder, self).create(vals_list)
+        for record in records:
+            if record.user_id.login == 'syncspider':
+                record.auto_downpayment = True
+        return records
+
     def action_confirm(self):
         res = super(SaleOrder, self).action_confirm()
         for order in self:
@@ -35,15 +43,23 @@ class SaleOrder(models.Model):
                 continue
             if not order.user_id.login == 'syncspider':
                 continue
+            if order.payment_status not in ["Paid", "Partially paid"]:
+                continue
+            if (order.payment_status == "Partially paid") and not order.amount_received:
+                continue
             if order.auto_downpayment:
+                amount = order.amount_received
+                if not amount:
+                    amount = order.amount_total
                 sapi = self.env['sale.advance.payment.inv'].with_context(active_ids=order.ids).create({
                     'advance_payment_method': 'fixed',
-                    'fixed_amount': order.amount_received
+                    'fixed_amount': amount
                 })
                 sapi.sudo().create_invoices()
-                order.invoice_ids.action_post()
-                for invoice in order.invoice_ids:
-                    template = self.env.ref(invoice._get_mail_template(), raise_if_not_found=False)
-                    if template:
-                        template.send_mail(invoice.id)
+                # disabled for review by customer
+                # order.invoice_ids.action_post()
+                # for invoice in order.invoice_ids:
+                #     template = self.env.ref(invoice._get_mail_template(), raise_if_not_found=False)
+                #     if template:
+                #         template.send_mail(invoice.id)
         return res
