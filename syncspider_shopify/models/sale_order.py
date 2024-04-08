@@ -32,8 +32,13 @@ class SaleOrder(models.Model):
     def create(self, vals_list):
         records = super(SaleOrder, self).create(vals_list)
         for record in records:
-            if record.user_id.login == 'syncspider':
-                record.auto_downpayment = True
+            try:
+                if record.amount_received:
+                    record.amount_received = record.amount_received / 100
+                if record.user_id.login == 'syncspider':
+                    record.auto_downpayment = True
+            except Exception as e:
+                _logger.warning("Error setting order values: %s" % e)
         return records
 
     def action_confirm(self):
@@ -57,8 +62,10 @@ class SaleOrder(models.Model):
                 })
                 sapi.sudo().create_invoices()
                 # disabled for review by customer
-                # order.invoice_ids.action_post()
-                # for invoice in order.invoice_ids:
+                order.invoice_ids.action_post()
+                for invoice in order.invoice_ids:
+                    apr = self.env['account.payment.register'].with_context(active_model='account.move', active_ids=invoice.ids).create({})
+                    apr.action_create_payments()
                 #     template = self.env.ref(invoice._get_mail_template(), raise_if_not_found=False)
                 #     if template:
                 #         template.send_mail(invoice.id)
