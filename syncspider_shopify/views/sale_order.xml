@@ -13,6 +13,7 @@
                     <group string="Syncspider">
                         <field name="auto_downpayment"/>
                         <field name="gateway"/>
+                        <field name="payment_ref"/>
                         <field name="amount_received"/>
                         <field name="payment_status"/>
                         <field name="shopify_delivery_method"/>
