@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api, _, SUPERUSER_ID
+from odoo.exceptions import UserError
 from odoo.tools import float_compare
 import logging
 
@@ -28,6 +29,7 @@ class SaleOrder(models.Model):
     auto_downpayment = fields.Boolean(string="Automatische Anzahlung", default=False)
     shopify_delivery_method = fields.Char(string="Liefermethode", readonly=1)
     shopify_delivery_amount = fields.Float(string="Lieferbetrag", readonly=1)
+    original_date = fields.Datetime(string="Originalbestelldatum")
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -38,6 +40,7 @@ class SaleOrder(models.Model):
                     record.amount_received = record.amount_received / 100
                 if record.user_id.login == 'syncspider':
                     record.auto_downpayment = True
+                    record.original_date = record.date_order
             except Exception as e:
                 _logger.warning("Error setting order values: %s" % e)
         return records
@@ -65,7 +68,17 @@ class SaleOrder(models.Model):
                 # disabled for review by customer
                 order.invoice_ids.action_post()
                 for invoice in order.invoice_ids:
-                    apr = self.env['account.payment.register'].with_context(active_model='account.move', active_ids=invoice.ids).create({})
+                    journal = self.env['account.journal'].search([('gateway_tag_ids.gateway', '=', self.gateway)],
+                                                                 limit=1)
+                    if not journal:
+                        journal = self.env['account.journal'].search([('default_shopify_journal', '=', True)], limit=1)
+                        if not journal:
+                            raise UserError(_("No Journal for gateway % found and no default journal is defined."))
+                    apr = self.env['account.payment.register'].with_context(active_model='account.move', active_ids=invoice.ids).create({
+                        'journal_id': journal.id,
+                        'communication': self.payment_ref,
+                        'payment_date': self.original_date
+                    })
                     apr.action_create_payments()
                 #     template = self.env.ref(invoice._get_mail_template(), raise_if_not_found=False)
                 #     if template:

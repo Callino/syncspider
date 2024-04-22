@@ -16,6 +16,7 @@
                         <field name="payment_ref"/>
                         <field name="amount_received"/>
                         <field name="payment_status"/>
+                        <field name="original_date"/>
                         <field name="shopify_delivery_method"/>
                         <field name="shopify_delivery_amount"/>
                     </group>
