@@ -65,19 +65,14 @@ class SaleOrder(models.Model):
                     'fixed_amount': amount
                 })
                 sapi.sudo().create_invoices()
+                if order.gateway == 'paypal' and order.payment_ref:
+                    order.invoice_ids.write({'invoice_origin': order.payment_ref})
                 # disabled for review by customer
                 order.invoice_ids.action_post()
                 for invoice in order.invoice_ids:
-                    journal = self.env['account.journal'].search([('gateway_tag_ids.gateway', '=', self.gateway)],
-                                                                 limit=1)
-                    if not journal:
-                        journal = self.env['account.journal'].search([('default_shopify_journal', '=', True)], limit=1)
-                        if not journal:
-                            raise UserError(_("No Journal for gateway % found and no default journal is defined."))
                     apr = self.env['account.payment.register'].with_context(active_model='account.move', active_ids=invoice.ids).create({
-                        'journal_id': journal.id,
-                        'communication': self.payment_ref,
-                        'payment_date': self.original_date
+                        # 'communication': self.payment_ref,
+                        'payment_date': order.original_date or order.date_order
                     })
                     apr.action_create_payments()
                 #     template = self.env.ref(invoice._get_mail_template(), raise_if_not_found=False)

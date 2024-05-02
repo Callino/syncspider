@@ -22,9 +22,6 @@
     # always loaded
     'data': [
         'views/sale_order.xml',
-        'views/account_journal.xml',
-        'views/journal_gateway_tag.xml',
-        'security/ir.model.access.csv'
     ],
     # only loaded in demonstration mode
     'demo': [
