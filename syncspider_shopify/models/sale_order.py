@@ -52,10 +52,6 @@ class SaleOrder(models.Model):
                 continue
             if not order.user_id.login == 'syncspider':
                 continue
-            if order.payment_status not in ["Paid", "Partially paid"]:
-                continue
-            if (order.payment_status == "Partially paid") and not order.amount_received:
-                continue
             if order.auto_downpayment:
                 amount = order.amount_received
                 if not amount:
@@ -70,6 +66,10 @@ class SaleOrder(models.Model):
                 # disabled for review by customer
                 order.invoice_ids.action_post()
                 for invoice in order.invoice_ids:
+                    if order.payment_status not in ["Paid", "Partially paid"]:
+                        continue
+                    if (order.payment_status == "Partially paid") and not order.amount_received:
+                        continue
                     apr = self.env['account.payment.register'].with_context(active_model='account.move', active_ids=invoice.ids).create({
                         # 'communication': self.payment_ref,
                         'payment_date': order.original_date or order.date_order
