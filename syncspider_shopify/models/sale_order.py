@@ -54,6 +54,8 @@ class SaleOrder(models.Model):
                 continue
             if "MH" not in order.name:
                 continue
+            if order.gateway == 'Bezahlung bei Abholung (Bar- oder Kartenzahlung)':
+                continue
             if order.auto_downpayment:
                 amount = order.amount_received
                 if not amount:
