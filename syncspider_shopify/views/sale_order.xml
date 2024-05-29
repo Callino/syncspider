@@ -15,6 +15,7 @@
                         <field name="gateway"/>
                         <field name="payment_ref"/>
                         <field name="amount_received"/>
+                        <field name="shopify_amount_total"/>
                         <field name="payment_status"/>
                         <field name="original_date"/>
                         <field name="shopify_delivery_method"/>

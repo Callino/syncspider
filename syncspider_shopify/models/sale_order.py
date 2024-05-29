@@ -13,6 +13,7 @@ class SaleOrder(models.Model):
     gateway = fields.Char(string="Gateway", readonly=True)
     payment_ref = fields.Char(string="Payment Reference", readonly=True)
     amount_received = fields.Float(string="Amount Received", readonly=True)
+    shopify_amount_total = fields.Float(string="Shopify Amount Total", readonly=True)
     payment_status = fields.Selection(selection=[
         ('Pending', _('Pending')),
         ('Authorized', _('Authorized')),
