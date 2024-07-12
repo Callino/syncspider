@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api, _, SUPERUSER_ID
 from odoo.exceptions import UserError
-from odoo.tools import float_compare
+from odoo.tools import float_compare, float_is_zero
+from odoo.fields import Command
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -10,10 +11,25 @@ _logger = logging.getLogger(__name__)
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
+    @api.depends('gateway')
+    def _get_shopify_gateway(self):
+        for record in self:
+            if not record.gateway:
+                record.gateway_id = False
+                continue
+            if not record.gateway.strip():
+                record.gateway_id = False
+                continue
+            gateway = self.env['shopify.gateway'].search([('name', '=', record.gateway.strip())], limit=1)
+            if not gateway:
+                gateway = self.env['shopify.gateway'].create({'name': record.gateway.strip()})
+            record.gateway_id = gateway.id
+
     gateway = fields.Char(string="Gateway", readonly=True)
+    gateway_id = fields.Many2one('shopify.gateway', string="Gateway Journal", compute="_get_shopify_gateway", store=True)
     payment_ref = fields.Char(string="Payment Reference", readonly=True)
     amount_received = fields.Float(string="Amount Received", readonly=True)
-    shopify_amount_total = fields.Float(string="Shopify Amount Total", readonly=True)
+    shopify_amount_total = fields.Float(string="Shopify Amount Total", copy=False)
     payment_status = fields.Selection(selection=[
         ('Pending', _('Pending')),
         ('Authorized', _('Authorized')),
@@ -46,9 +62,22 @@ class SaleOrder(models.Model):
                 _logger.warning("Error setting order values: %s" % e)
         return records
 
+    @api.returns('self', lambda value: value.id)
+    def copy(self, default=None):
+        order = super(SaleOrder, self).copy(default)
+        rounding_error_lines = order.order_line.filtered(lambda f: f.is_rounding_error_line)
+        if rounding_error_lines:
+            rounding_error_lines.unlink()
+        return order
+
     def action_confirm(self):
-        res = super(SaleOrder, self).action_confirm()
+        orders_to_confirm = self.env['sale.order']
         for order in self:
+            can_confirm = order.check_shopify_amount_total()
+            if can_confirm:
+                orders_to_confirm += order
+        res = super(SaleOrder, orders_to_confirm).action_confirm()
+        for order in orders_to_confirm:
             if not order.user_id:
                 continue
             if not order.user_id.login == 'syncspider':
@@ -58,29 +87,103 @@ class SaleOrder(models.Model):
             if order.gateway == 'Bezahlung bei Abholung (Bar- oder Kartenzahlung)':
                 continue
             if order.auto_downpayment:
-                amount = order.amount_received
-                if not amount:
-                    amount = order.amount_total
-                sapi = self.env['sale.advance.payment.inv'].with_context(active_ids=order.ids).create({
-                    'advance_payment_method': 'fixed',
-                    'fixed_amount': amount
-                })
-                sapi.sudo().create_invoices()
-                if order.gateway == 'paypal' and order.payment_ref:
-                    order.invoice_ids.write({'invoice_origin': order.payment_ref})
-                # disabled for review by customer
-                order.invoice_ids.action_post()
-                for invoice in order.invoice_ids:
-                    if order.payment_status not in ["Paid", "Partially paid"]:
-                        continue
-                    if (order.payment_status == "Partially paid") and not order.amount_received:
-                        continue
-                    apr = self.env['account.payment.register'].with_context(active_model='account.move', active_ids=invoice.ids).create({
-                        # 'communication': self.payment_ref,
-                        'payment_date': order.original_date or order.date_order
-                    })
-                    apr.action_create_payments()
-                #     template = self.env.ref(invoice._get_mail_template(), raise_if_not_found=False)
-                #     if template:
-                #         template.send_mail(invoice.id)
+                order.auto_payment()
         return res
+
+    def auto_payment(self):
+        for order in self:
+            amount = order.amount_received
+            if not amount:
+                amount = order.amount_total
+            sapi = self.env['sale.advance.payment.inv'].with_context(active_ids=order.ids).create({
+                'advance_payment_method': 'fixed',
+                'fixed_amount': amount
+            })
+            sapi.sudo().create_invoices()
+            if order.gateway == 'paypal' and order.payment_ref:
+                order.invoice_ids.write({'invoice_origin': order.payment_ref})
+            # disabled for review by customer
+            order.invoice_ids.action_post()
+            for invoice in order.invoice_ids:
+                if not order.gateway_id.journal_id:
+                    activity = self.env['mail.activity'].search([
+                        ('activity_type_id', '=',
+                         self.env.ref('syncspider_shopify.activity_assign_gateway').id),
+                        ('res_id', '=', self.id),
+                        ('res_model_id', '=', self.env['ir.model']._get('sale.order').id),
+                    ])
+                    if not activity:
+                        self.env['mail.activity'].create({
+                            'activity_type_id': self.env.ref('syncspider_shopify.activity_assign_gateway').id,
+                            'user_id': self.user_id.id,
+                            'summary': self.env.ref('syncspider_shopify.activity_assign_gateway').summary,
+                            'res_id': self.id,
+                            'res_model_id': self.env['ir.model']._get('sale.order').id,
+                        })
+                    continue
+                if order.payment_status not in ["Paid", "Partially paid"]:
+                    continue
+                if (order.payment_status == "Partially paid") and not order.amount_received:
+                    continue
+                apr = self.env['account.payment.register'].with_context(active_model='account.move',
+                                                                        active_ids=invoice.ids).create({
+                    # 'communication': self.payment_ref,
+                    'journal_id': order.gateway_id.journal_id.id,
+                    'payment_date': order.original_date or order.date_order
+                })
+                apr.action_create_payments()
+            #     template = self.env.ref(invoice._get_mail_template(), raise_if_not_found=False)
+            #     if template:
+            #         template.send_mail(invoice.id)
+
+    def check_shopify_amount_total(self):
+        """
+        T13075 - check Odoo amount vs shopify amount, allow confirm either natively or with light adjustment, bigger adjustments need manual input
+        :return:
+        """
+        self.ensure_one()
+        if float_is_zero(self.shopify_amount_total, precision_digits=2):
+            # no value given - continue as normal
+            return True
+        if float_compare(self.shopify_amount_total, self.amount_total, precision_digits=2) == 0.0:
+            # no difference - continue as normal
+            return True
+        difference = round(self.shopify_amount_total - self.amount_total, 2)
+        if abs(difference) > 0.05:  # abs cause it works in both directions
+            # difference is too great - manual adjustment needed create acitivity
+            activity = self.env['mail.activity'].search([
+                ('activity_type_id', '=', self.env.ref('syncspider_shopify.activity_order_check_amount_total').id),
+                ('res_id', '=', self.id),
+                ('res_model_id', '=', self.env['ir.model']._get('sale.order').id),
+            ])
+            if not activity:
+                self.env['mail.activity'].create({
+                    'activity_type_id': self.env.ref('syncspider_shopify.activity_order_check_amount_total').id,
+                    'user_id': self.user_id.id,
+                    'summary': self.env.ref('syncspider_shopify.activity_order_check_amount_total').summary,
+                    'res_id': self.id,
+                    'res_model_id': self.env['ir.model']._get('sale.order').id,
+                })
+            return False
+        else:
+            # adjustment automated, create line
+            product = self.env['product.product'].search([('rounding_line_product', '=', True)], limit=1)
+            rounding_line = self.order_line.filtered(lambda f: f.product_id.id == product.id)
+            if not rounding_line:
+                if not product:
+                    raise UserError(_('Kein Produkt für Rundungsdifferenzen gefunden.'))
+                values = {
+                    'product_id': product.id,
+                    'product_uom_qty': 1,
+                    'price_unit': difference,
+                    'is_rounding_error_line': True
+                }
+                self.write({'order_line': [(0, 0, values)]})
+                self.message_post(body="Zeile f. Rundungsdifferenz über %r &amp;euro; automatisch erstellt." % difference)
+            else:
+                rounding_line.write({'price_unit': difference})
+                self.message_post(body="Zeile f. Rundungsdifferenz über %r &amp;euro; automatisch aktualisiert." % difference)
+            # set line as last line so it wont show up somewhere in the middle
+            self.order_line.filtered(lambda f: f.product_id.id == product.id).sequence = max(
+                line.sequence for line in self.order_line) + 1
+            return True

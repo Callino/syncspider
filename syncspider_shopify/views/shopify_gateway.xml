@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="shopify_gateway_view_tree" model="ir.ui.view">
+            <field name="name">shopify_gateway_view_tree</field>
+            <field name="model">shopify.gateway</field>
+            <field name="arch" type="xml">
+                <tree string="shopify_gateway_tree" editable="bottom">
+                    <field name="name"/>
+                    <field name="journal_id" options="{'no_create': True, 'no_open': True}"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="shopify_gateway_action" model="ir.actions.act_window">
+            <field name="name">Shopify Gateways</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">shopify.gateway</field>
+            <field name="view_mode">tree</field>
+        </record>
+
+        <menuitem id="shopify_gateway_menu" name="Shopify Gateways" parent="account.account_account_menu" action="shopify_gateway_action" sequence="90"/>
+
+    </data>
+</odoo>

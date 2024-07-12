@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="activity_order_check_amount_total" model="mail.activity.type">
+            <field name="name">Auftrag bzgl. Gesamtbetrag überprüfen</field>
+            <field name="summary">Die Auftragssumme weicht vom Wert aus Shopify ab. Produkte und Preise kontrollieren!</field>
+            <field name="res_model">sale.order</field>
+        </record>
+
+        <record id="activity_assign_gateway" model="mail.activity.type">
+            <field name="name">Shopify Gateway ist noch nicht mit Journal verknüpft.</field>
+            <field name="summary">Geben Sie an zu welchem Journal die Zahlung mit diesem Gateway gebucht werden soll um zukünftige Zahlungen automatisch abzuarbeiten.!</field>
+            <field name="res_model">sale.order</field>
+        </record>
+
+    </data>
+</odoo>
