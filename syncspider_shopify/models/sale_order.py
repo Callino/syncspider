@@ -46,6 +46,8 @@ class SaleOrder(models.Model):
     auto_downpayment = fields.Boolean(string="Automatische Anzahlung", default=False)
     shopify_delivery_method = fields.Char(string="Liefermethode", readonly=1)
     shopify_delivery_amount = fields.Float(string="Lieferbetrag", readonly=1)
+    shopify_global_discount_amount = fields.Float(string="Monetärer Discount auf Auftrag")
+    shopify_global_discount_text = fields.Char(string="Text Discount auf Auftrag")
     original_date = fields.Datetime(string="Originalbestelldatum")
 
     @api.model_create_multi
