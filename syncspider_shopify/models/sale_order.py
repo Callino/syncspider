@@ -75,6 +75,7 @@ class SaleOrder(models.Model):
     def action_confirm(self):
         orders_to_confirm = self.env['sale.order']
         for order in self:
+            # order.check_global_discount()
             can_confirm = order.check_shopify_amount_total()
             if can_confirm:
                 orders_to_confirm += order
@@ -88,9 +89,34 @@ class SaleOrder(models.Model):
                 continue
             if order.gateway == 'Bezahlung bei Abholung (Bar- oder Kartenzahlung)':
                 continue
+            if order.order_line.filtered(lambda f: f.is_downpayment):
+                continue
             if order.auto_downpayment:
                 order.auto_payment()
         return res
+
+    def check_global_discount(self):
+        for order in self:
+            if order.shopify_global_discount_amount > 0.0:
+                values = self.get_shopify_global_discount_values()
+                if values:
+                    order.write({'order_line': [(0, 0, values)]})
+
+    def get_shopify_global_discount_values(self):
+        reward_product = self.env['product.product'].search([('global_discount_product', '=', True)], limit=1)
+        if not reward_product:
+            return False
+        sequence = max(self.order_line.filtered(lambda x: not x.is_reward_line).mapped('sequence'), default=10) + 1
+        reward_line_values = {
+            'name': self.shopify_global_discount_text,
+            'product_id': reward_product.id,
+            'price_unit': -self.shopify_global_discount_amount,
+            'product_uom_qty': 1.0,
+            'product_uom': reward_product.uom_id.id,
+            'sequence': sequence,
+            'tax_id': [Command.clear()],
+        }
+        return reward_line_values
 
     def auto_payment(self):
         for order in self:

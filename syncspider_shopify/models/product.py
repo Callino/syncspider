@@ -11,3 +11,4 @@ class ProductProduct(models.Model):
     _inherit = 'product.product'
 
     rounding_line_product = fields.Boolean(string="Produkt für Rundungsdifferenzen", default=False)
+    global_discount_product = fields.Boolean(string="Produkt für Shopify Rabatte", default=False)
