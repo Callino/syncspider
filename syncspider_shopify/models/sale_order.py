@@ -75,7 +75,7 @@ class SaleOrder(models.Model):
     def action_confirm(self):
         orders_to_confirm = self.env['sale.order']
         for order in self:
-            # order.check_global_discount()
+            order.check_global_discount()
             can_confirm = order.check_shopify_amount_total()
             if can_confirm:
                 orders_to_confirm += order
@@ -108,7 +108,7 @@ class SaleOrder(models.Model):
             return False
         sequence = max(self.order_line.filtered(lambda x: not x.is_reward_line).mapped('sequence'), default=10) + 1
         reward_line_values = {
-            'name': self.shopify_global_discount_text,
+            'name': self.shopify_global_discount_text or "Rabatt",
             'product_id': reward_product.id,
             'price_unit': -self.shopify_global_discount_amount,
             'product_uom_qty': 1.0,
