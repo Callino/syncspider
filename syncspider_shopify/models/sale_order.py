@@ -100,7 +100,13 @@ class SaleOrder(models.Model):
             if order.shopify_global_discount_amount > 0.0:
                 values = self.get_shopify_global_discount_values()
                 if values:
-                    order.write({'order_line': [(0, 0, values)]})
+                    if order.order_line.filtered(lambda f: f.product_id.id == values['product_id']):
+                        order.order_line.filtered(lambda f: f.product_id.id == values['product_id']).write({
+                            'price_unit': values['price_unit'],
+                            'tax_id': values['tax_id'],
+                        })
+                    else:
+                        order.write({'order_line': [(0, 0, values)]})
 
     def get_shopify_global_discount_values(self):
         reward_product = self.env['product.product'].search([('global_discount_product', '=', True)], limit=1)
