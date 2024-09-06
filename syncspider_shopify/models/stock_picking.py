@@ -10,6 +10,8 @@ _logger = logging.getLogger(__name__)
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
+    hook_id = fields.Many2one('sync.hook', string="Hook")
+
     def get_webhook_data(self):
         vals = {
             'order_nr': self.sale_id.name,
