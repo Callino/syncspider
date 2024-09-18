@@ -15,6 +15,7 @@ class StockPicking(models.Model):
     def get_webhook_data(self, package):
         vals = {
             'order_nr': self.sale_id.name,
+            'carrier': self.carrier_id.name if self.carrier_id else 'no_carrier',
             'complete': False if self.backorder_ids else True,
             'package': False,
         }
