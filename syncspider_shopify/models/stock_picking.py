@@ -36,6 +36,8 @@ class StockPicking(models.Model):
             return
         if not self.sale_id.gateway:
             return
+        if not 'MH' in self.sale_id.name:
+            return
         for package in self.package_ids:
             values = self.get_webhook_data(package)
             event_str = "Versand zu %s Rücksync, %s" % (package.name, datetime.now().strftime("%d.%m.%Y %H:%M"))
