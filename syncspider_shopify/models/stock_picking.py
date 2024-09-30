@@ -17,7 +17,7 @@ class StockPicking(models.Model):
             'order_nr': self.sale_id.name,
             'carrier_id': self.carrier_id.id if self.carrier_id else '0',
             'carrier': self.carrier_id.name if self.carrier_id else 'no_carrier',
-            'complete': False if self.backorder_ids else True,
+            'complete': False if ((self.backorder_ids) or (self.sale_id.picking_ids.filtered(lambda f: f.state not in ('done', 'cancel')))) else True,
             'package': False,
         }
         package_vals = {
@@ -65,7 +65,6 @@ class StockPicking(models.Model):
 
     def button_validate(self):
         res = super(StockPicking, self).button_validate()
-        if res == True:
-            for record in self:
-                record.send_delivery_webhook()
+        for record in self:
+            record.send_delivery_webhook()
         return res
