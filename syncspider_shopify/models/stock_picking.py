@@ -97,6 +97,7 @@ class StockPicking(models.Model):
                             "carrier_id": self.carrier_id.id if self.carrier_id else '0',
                             "carrier": self.carrier_id.name if self.carrier_id else 'no_carrier',
                             "product_id": order_line.product_id.id,
+                            "quantity": order_line.qty_delivered,
                             "tracking": order_line.move_ids.mapped('move_line_ids').mapped('result_package_id').mapped('name')
                         })
                     })
