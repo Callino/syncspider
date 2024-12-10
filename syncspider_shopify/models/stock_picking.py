@@ -11,6 +11,7 @@ class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
     hook_id = fields.Many2one('sync.hook', string="Hook")
+    bom_hook_id = fields.Many2one('sync.hook', string="Hook")
 
     def get_webhook_data(self, package):
         vals = {
@@ -77,7 +78,7 @@ class StockPicking(models.Model):
                 boms = order_line.move_ids.filtered(lambda m: m.state != 'cancel').mapped('bom_line_id.bom_id')
                 if boms and (order_line.qty_delivered == order_line.product_uom_qty):
                     event_str = "Versand zu %s Rücksync, %s" % (order_line.name, datetime.now().strftime("%d.%m.%Y %H:%M"))
-                    if not self.hook_id:
+                    if not self.bom_hook_id:
                         webhook_url = self.env['ir.config_parameter'].sudo().get_param('picking_resync.webhook.url.bom')
                         hook = self.env['sync.hook'].sudo().create({
                             'name': "Rücksync %s" % (self.name or self.id),
@@ -86,10 +87,10 @@ class StockPicking(models.Model):
                             'record_id': self.id,
                             'webhook_url': webhook_url
                         })
-                        self.hook_id = hook
+                        self.bom_hook_id = hook
                     event = self.env['sync.event'].sudo().create({
                         'name': event_str,
-                        'hook_id': self.hook_id.id,
+                        'hook_id': self.bom_hook_id.id,
                         'nexttry': datetime.now(),
                         'payload': json.dumps({
                             "order_nr": self.sale_id.name,
