@@ -79,8 +79,6 @@ class StockPicking(models.Model):
                     event_str = "Versand zu %s Rücksync, %s" % (order_line.name, datetime.now().strftime("%d.%m.%Y %H:%M"))
                     if not self.hook_id:
                         webhook_url = self.env['ir.config_parameter'].sudo().get_param('picking_resync.webhook.url.bom')
-                        if not webhook_url:
-                            return
                         hook = self.env['sync.hook'].sudo().create({
                             'name': "Rücksync %s" % (self.name or self.id),
                             'record_ref': self.name or self.id,
