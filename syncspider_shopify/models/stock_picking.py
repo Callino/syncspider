@@ -92,11 +92,11 @@ class StockPicking(models.Model):
                         'hook_id': self.hook_id.id,
                         'nexttry': datetime.now(),
                         'payload': {
-                            'order_nr': self.sale_id.name,
-                            'carrier_id': self.carrier_id.id if self.carrier_id else '0',
-                            'carrier': self.carrier_id.name if self.carrier_id else 'no_carrier',
-                            'product_id': order_line.product_id.id,
-                            'tracking': order_line.move_ids.mapped('move_line_ids').mapped('result_package_id').mapped('name')
+                            "order_nr": self.sale_id.name,
+                            "carrier_id": self.carrier_id.id if self.carrier_id else '0',
+                            "carrier": self.carrier_id.name if self.carrier_id else 'no_carrier',
+                            "product_id": order_line.product_id.id,
+                            "tracking": order_line.move_ids.mapped('move_line_ids').mapped('result_package_id').mapped('name')
                         }
                     })
                     event.run_async()
