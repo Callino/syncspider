@@ -46,8 +46,8 @@ class SaleOrder(models.Model):
     auto_downpayment = fields.Boolean(string="Automatische Anzahlung", default=False)
     shopify_delivery_method = fields.Char(string="Liefermethode", readonly=1)
     shopify_delivery_amount = fields.Float(string="Lieferbetrag", readonly=1)
-    shopify_global_discount_amount = fields.Float(string="Monetärer Discount auf Auftrag")
-    shopify_global_discount_text = fields.Char(string="Text Discount auf Auftrag")
+    shopify_global_discount_amount = fields.Float(string="Monetärer Discount auf Auftrag", tracking=True)
+    shopify_global_discount_text = fields.Char(string="Text Discount auf Auftrag", tracking=True)
     original_date = fields.Datetime(string="Originalbestelldatum")
 
     @api.model_create_multi
@@ -160,7 +160,7 @@ class SaleOrder(models.Model):
                 if (order.payment_status == "Partially paid") and not order.amount_received:
                     continue
                 apr = self.env['account.payment.register'].with_context(active_model='account.move',
-                                                                        active_ids=invoice.ids).create({
+                                                                        active_ids=invoice.ids, no_payment_mail=True).create({
                     # 'communication': self.payment_ref,
                     'journal_id': order.gateway_id.journal_id.id,
                     'payment_date': order.original_date or order.date_order
