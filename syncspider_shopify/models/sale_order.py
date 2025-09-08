@@ -134,7 +134,7 @@ class SaleOrder(models.Model):
                 'fixed_amount': amount
             })
             sapi.sudo().create_invoices()
-            if order.gateway == 'paypal' and order.payment_ref:
+            if order.gateway in ['paypal', 'PayPal Payments'] and order.payment_ref:
                 order.invoice_ids.write({'invoice_origin': order.payment_ref})
             # disabled for review by customer
             order.invoice_ids.action_post()
