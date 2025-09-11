@@ -55,6 +55,7 @@ class SaleOrder(models.Model):
         records = super(SaleOrder, self).create(vals_list)
         for record in records:
             try:
+                record.check_global_discount()
                 if record.amount_received:
                     record.amount_received = record.amount_received / 100
                 if record.user_id.login == 'syncspider':
@@ -63,6 +64,15 @@ class SaleOrder(models.Model):
             except Exception as e:
                 _logger.warning("Error setting order values: %s" % e)
         return records
+
+    def write(self, vals):
+        res = super(SaleOrder, self).write(vals)
+        for order in self:
+            try:
+                order.check_global_discount()
+            except Exception as e:
+                _logger.warning("Error checking global discount: %s" % e)
+        return res
 
     @api.returns('self', lambda value: value.id)
     def copy(self, default=None):
