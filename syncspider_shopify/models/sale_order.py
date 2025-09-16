@@ -43,7 +43,7 @@ class SaleOrder(models.Model):
         ('Voided', _('Voided')),
         ('Unpaid', _('Unpaid')),
     ], string="Payment Status", readonly=True)
-    auto_downpayment = fields.Boolean(string="Automatische Anzahlung", default=True)
+    auto_downpayment = fields.Boolean(string="Automatische Anzahlung", default=False)
     shopify_delivery_method = fields.Char(string="Liefermethode", readonly=1)
     shopify_delivery_amount = fields.Float(string="Lieferbetrag", readonly=1)
     shopify_global_discount_amount = fields.Float(string="Monetärer Discount auf Auftrag", tracking=True)
@@ -56,6 +56,9 @@ class SaleOrder(models.Model):
         for record in records:
             try:
                 record.check_global_discount()
+            except Exception as e:
+                _logger.warning("Error setting order values: %s" % e)
+            try:
                 if record.amount_received:
                     record.amount_received = record.amount_received / 100
                 if record.user_id.login == 'syncspider':
