@@ -80,9 +80,13 @@ class SaleOrder(models.Model):
     @api.returns('self', lambda value: value.id)
     def copy(self, default=None):
         order = super(SaleOrder, self).copy(default)
+        reward_product = self.env['product.product'].search([('global_discount_product', '=', True)], limit=1)
+        reward_lines = order.order_line.filtered(lambda f: f.product_id.id == reward_product.id)
         rounding_error_lines = order.order_line.filtered(lambda f: f.is_rounding_error_line)
         if rounding_error_lines:
             rounding_error_lines.unlink()
+        if reward_lines:
+            reward_lines.unlink()
         return order
 
     def action_confirm(self):
