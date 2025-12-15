@@ -137,7 +137,7 @@ class SaleOrder(models.Model):
             'product_uom_qty': 1.0,
             'product_uom': reward_product.uom_id.id,
             'sequence': sequence,
-            'tax_id': [(6, 0, self.order_line.mapped('tax_id')[0].ids)],
+            'tax_id': [(6, 0, self.order_line.mapped('tax_id')[0].ids)] if self.order_line.mapped('tax_id') else [(6, 0, reward_product.taxes_id.ids)],
         }
         return reward_line_values
 
