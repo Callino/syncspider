@@ -20,6 +20,7 @@
                         <field name="payment_status"/>
                         <field name="original_date"/>
                         <field name="shopify_delivery_method"/>
+                        <field name="shopify_carrier_id"/>
                         <field name="shopify_delivery_amount"/>
                         <field name="shopify_global_discount_amount"/>
                         <field name="shopify_global_discount_text"/>

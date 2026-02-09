@@ -9,6 +9,8 @@
                 <tree string="shopify_gateway_tree" editable="bottom">
                     <field name="name"/>
                     <field name="journal_id" options="{'no_create': True, 'no_open': True}"/>
+                    <field name="set_pickings_as_paid_authorized"/>
+                    <field name="payment_term_id" options="{'no_create': True, 'no_open': True}"/>
                 </tree>
             </field>
         </record>

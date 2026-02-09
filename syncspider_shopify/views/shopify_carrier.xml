@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Views -->
+        <record id="shopify_carrier_view_tree" model="ir.ui.view">
+            <field name="name">shopify_carrier_view_tree</field>
+            <field name="model">shopify.carrier</field>
+            <field name="arch" type="xml">
+                <tree string="Shopify Carrier Mapping" editable="bottom">
+                    <field name="name"/>
+                    <field name="carrier_id" options="{'no_create': True}"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="shopify_carrier_view_form" model="ir.ui.view">
+            <field name="name">shopify_carrier_view_form</field>
+            <field name="model">shopify.carrier</field>
+            <field name="arch" type="xml">
+                <form string="Shopify Carrier Mapping">
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="carrier_id"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Action -->
+        <record id="action_shopify_carrier" model="ir.actions.act_window">
+            <field name="name">Shopify Carrier Mapping</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">shopify.carrier</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <!-- Menu under Inventory (Lager) > Configuration -->
+        <menuitem id="menu_shopify_carrier"
+                  name="Shopify Carrier Mapping"
+                  parent="stock.menu_stock_config_settings"
+                  action="action_shopify_carrier"
+                  sequence="95"/>
+
+    </data>
+</odoo>

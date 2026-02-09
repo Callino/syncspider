@@ -44,11 +44,32 @@ class SaleOrder(models.Model):
         ('Unpaid', _('Unpaid')),
     ], string="Payment Status", readonly=True)
     auto_downpayment = fields.Boolean(string="Automatische Anzahlung", default=False)
-    shopify_delivery_method = fields.Char(string="Liefermethode", readonly=1)
-    shopify_delivery_amount = fields.Float(string="Lieferbetrag", readonly=1)
+    shopify_delivery_method = fields.Char(string="Liefermethode", readonly=0)
+    shopify_delivery_amount = fields.Float(string="Lieferbetrag", readonly=0)
     shopify_global_discount_amount = fields.Float(string="Monetärer Discount auf Auftrag", tracking=True, copy=False)
     shopify_global_discount_text = fields.Char(string="Text Discount auf Auftrag", tracking=True, copy=False)
     original_date = fields.Datetime(string="Originalbestelldatum")
+
+    # Computed Shopify carrier mapping record (like gateway_id)
+    @api.depends('shopify_delivery_method')
+    def _compute_shopify_carrier(self):
+        for record in self:
+            if not record.shopify_delivery_method or not record.shopify_delivery_method.strip():
+                record.shopify_carrier_id = False
+                continue
+            name = record.shopify_delivery_method.strip()
+            mapping = self.env['shopify.carrier'].search([('name', '=', name)], limit=1)
+            if not mapping:
+                # Create placeholder mapping if missing (carrier can be set later via UI)
+                mapping = self.env['shopify.carrier'].create({'name': name})
+            record.shopify_carrier_id = mapping.id
+
+    shopify_carrier_id = fields.Many2one(
+        'shopify.carrier',
+        compute='_compute_shopify_carrier',
+        store=True,
+        string='Shopify Carrier Mapping'
+    )
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -151,8 +172,10 @@ class SaleOrder(models.Model):
                 'fixed_amount': amount
             })
             sapi.sudo().create_invoices()
-            if order.gateway in ['paypal', 'PayPal Payments'] and order.payment_ref:
+            if order.gateway in ['paypal', 'PayPal Payments', 'Unzer Invoice', 'Unzer Installment'] and order.payment_ref:
                 order.invoice_ids.write({'invoice_origin': order.payment_ref})
+            if order.gateway_id.payment_term_id:
+                order.payment_term_id = order.gateway_id.payment_term_id.id
             # disabled for review by customer
             order.invoice_ids.action_post()
             for invoice in order.invoice_ids:

@@ -12,3 +12,5 @@ class ShopifyGateway(models.Model):
 
     name = fields.Char(string='Gateway')
     journal_id = fields.Many2one('account.journal', string='Journal')
+    set_pickings_as_paid_authorized = fields.Boolean(string="Lieferscheine als Bezahlt markieren", default=False)
+    payment_term_id = fields.Many2one('account.payment.term', string='Zahlungsbedingung')

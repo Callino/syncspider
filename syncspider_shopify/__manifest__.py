@@ -17,13 +17,14 @@
     'version': '16.0.1.0.0',
     "license": "LGPL-3",
     # any module necessary for this one to work correctly
-    'depends': ['syncspider', 'sale'],
+    'depends': ['syncspider', 'sale', 'stock'],
 
     # always loaded
     'data': [
         'views/sale_order.xml',
         'views/product.xml',
         'views/shopify_gateway.xml',
+        'views/shopify_carrier.xml',
         'data/activities.xml',
         'security/ir.model.access.csv',
     ],

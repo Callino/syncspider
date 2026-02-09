@@ -1,3 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_shopify_gateway,access_shopify_gateway,model_shopify_gateway,base.group_user,1,0,0,0
 access_shopify_gateway_accounting,access_shopify_gateway_accounting,model_shopify_gateway,account.group_account_invoice,1,1,1,1
+access_shopify_carrier_user,access_shopify_carrier_user,model_shopify_carrier,base.group_user,1,0,0,0
+access_shopify_carrier_manager,access_shopify_carrier_manager,model_shopify_carrier,stock.group_stock_manager,1,1,1,1
