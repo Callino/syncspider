@@ -43,10 +43,11 @@ class SyncHook(models.Model):
                 pass
             vals['model'] = modelname
 
-    @api.model
-    def create(self, vals):
-        self._update_vals(vals)
-        return super(SyncHook, self).create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            self._update_vals(vals)
+        return super(SyncHook, self).create(vals_list)
 
     def write(self, vals):
         self._update_vals(vals)

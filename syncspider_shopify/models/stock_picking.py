@@ -11,7 +11,7 @@ class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
     hook_id = fields.Many2one('sync.hook', string="Hook")
-    bom_hook_id = fields.Many2one('sync.hook', string="Hook")
+    bom_hook_id = fields.Many2one('sync.hook', string="BOM Hook")
 
     def get_webhook_data(self, package):
         vals = {

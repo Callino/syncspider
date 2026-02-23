@@ -9,6 +9,7 @@ _logger = logging.getLogger(__name__)
 
 class ShopifyGateway(models.Model):
     _name = 'shopify.gateway'
+    _description = 'Shopify Gateway'
 
     name = fields.Char(string='Gateway')
     journal_id = fields.Many2one('account.journal', string='Journal')

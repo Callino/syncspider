@@ -8,6 +8,7 @@ _logger = logging.getLogger(__name__)
 
 class DistributionChannelTag(models.Model):
     _name = 'distribution.channel.tag'
+    _description = 'Distribution Channel Tag'
     _order = 'sequence'
 
     sequence = fields.Integer(name="Sequenz")
