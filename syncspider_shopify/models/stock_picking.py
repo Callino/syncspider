@@ -74,7 +74,7 @@ class StockPicking(models.Model):
         if not 'MH' in self.sale_id.name:
             return
         for order_line in self.sale_id.order_line:
-            if order_line.qty_delivered_method == 'stock_move':
+            if order_line.product_id.detailed_type == 'product':
                 boms = order_line.move_ids.filtered(lambda m: m.state != 'cancel').mapped('bom_line_id.bom_id')
                 if boms and (order_line.qty_delivered == order_line.product_uom_qty):
                     event_str = "Versand zu %s Rücksync, %s" % (order_line.name, datetime.now().strftime("%d.%m.%Y %H:%M"))
