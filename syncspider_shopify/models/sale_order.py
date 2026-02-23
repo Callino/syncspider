@@ -172,7 +172,7 @@ class SaleOrder(models.Model):
                 'fixed_amount': amount
             })
             sapi.sudo().create_invoices()
-            if order.gateway in ['paypal', 'PayPal Payments', 'Unzer Invoice', 'Unzer Installment'] and order.payment_ref:
+            if order.payment_ref:
                 order.invoice_ids.write({'invoice_origin': order.payment_ref})
             if order.gateway_id.payment_term_id:
                 order.payment_term_id = order.gateway_id.payment_term_id.id
