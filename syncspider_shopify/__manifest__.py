@@ -21,12 +21,13 @@
 
     # always loaded
     'data': [
+        'security/ir.model.access.csv',
         'views/sale_order.xml',
         'views/product.xml',
         'views/shopify_gateway.xml',
         'views/shopify_carrier.xml',
+        'views/sync_config.xml',
         'data/activities.xml',
-        'security/ir.model.access.csv',
     ],
     # only loaded in demonstration mode
     'demo': [

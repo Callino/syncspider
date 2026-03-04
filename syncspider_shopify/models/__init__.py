@@ -4,3 +4,4 @@ from . import shopify_gateway
 from . import sale_order_line
 from . import stock_picking
 from . import shopify_carrier
+from . import sync_config

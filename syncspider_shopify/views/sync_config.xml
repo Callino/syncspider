@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sync_config_tree" model="ir.ui.view">
+        <field name="name">sync.config.tree</field>
+        <field name="model">sync.config</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="order_prefix"/>
+                <field name="send_webhook"/>
+                <field name="auto_payment"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_sync_config_form" model="ir.ui.view">
+        <field name="name">sync.config.form</field>
+        <field name="model">sync.config</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <field name="active" widget="boolean_button"
+                               options='{"terminology": "archive"}'/>
+                    </div>
+                    <group>
+                        <group string="Allgemein">
+                            <field name="name"/>
+                            <field name="order_prefix"/>
+                            <field name="auto_payment"/>
+                        </group>
+                        <group string="Webhook">
+                            <field name="send_webhook"/>
+                            <field name="webhook_url" attrs="{'invisible': [('send_webhook', '=', False)]}"/>
+                            <field name="webhook_url_bom" attrs="{'invisible': [('send_webhook', '=', False)]}"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sync_config" model="ir.actions.act_window">
+        <field name="name">Sync Konfiguration</field>
+        <field name="res_model">sync.config</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_sync_config"
+              name="Sync Konfiguration"
+              parent="base.next_id_9"
+              action="action_sync_config"
+              sequence="99"/>
+</odoo>

@@ -82,6 +82,9 @@ class SyncEvent(models.Model):
     last_http_code = fields.Char('HTTP Code')
     last_http_response = fields.Text('HTTP Response')
 
+    def unlink(self):
+        return super(SyncEvent, self).unlink()
+
     def _do_http_request(self, events):
         with api.Environment.manage():
             # As this function is in a new thread, I need to open a new cursor, because the old one may be closed
@@ -130,6 +133,7 @@ class SyncEvent(models.Model):
 
     def run_async(self):
         # We do start a new environment in a new thread - and try the http request in this thread
+        self.env.cr.commit()
         http_request = threading.Timer(interval=5, function=self._do_http_request, kwargs={'events': self})
         http_request.start()
 
