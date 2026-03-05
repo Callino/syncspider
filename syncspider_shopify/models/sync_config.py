@@ -28,7 +28,22 @@ class SyncConfig(models.Model):
     auto_payment = fields.Boolean(
         string="Automatische Zahlung",
         default=False,
-        help="Zahlungen automatisch erstellen",
+        help="Zahlungen automatisch erstellen. Ursprünglich: 'MH' in order.name",
+    )
+    allow_autoconfirm = fields.Boolean(
+        string="Autoconfirm erlauben",
+        default=False,
+        help="Automatische Bestätigung von Aufträgen erlauben. Ursprünglich: 'MH' in self.name",
+    )
+    skip_vat_check = fields.Boolean(
+        string="UID-Prüfung überspringen",
+        default=False,
+        help="UID-Pflichtprüfung bei Rechnungserstellung überspringen. Ursprünglich: 'MH' in order.name",
+    )
+    use_market_brand_fiscal_position = fields.Boolean(
+        string="Marken-Fiskalposition verwenden",
+        default=False,
+        help="Fiskalposition aus Market Brand bei Änderung setzen. Ursprünglich: 'SD' in self.name",
     )
     active = fields.Boolean(string="Aktiv", default=True)
 

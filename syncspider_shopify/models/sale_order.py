@@ -123,7 +123,9 @@ class SaleOrder(models.Model):
                 continue
             if not order.user_id.login == 'syncspider':
                 continue
-            if "MH" not in order.name:
+            # Prüfe ob auto_payment über sync.config aktiviert ist
+            sync_config = self.env['sync.config'].get_config_for_order(order.name)
+            if not sync_config or not sync_config.auto_payment:
                 continue
             if order.gateway == 'Bezahlung bei Abholung (Bar- oder Kartenzahlung)':
                 continue

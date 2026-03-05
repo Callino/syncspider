@@ -28,12 +28,19 @@
                         <group string="Allgemein">
                             <field name="name"/>
                             <field name="order_prefix"/>
-                            <field name="auto_payment"/>
                         </group>
                         <group string="Webhook">
                             <field name="send_webhook"/>
                             <field name="webhook_url" attrs="{'invisible': [('send_webhook', '=', False)]}"/>
                             <field name="webhook_url_bom" attrs="{'invisible': [('send_webhook', '=', False)]}"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Auftragsverarbeitung">
+                            <field name="auto_payment"/>
+                            <field name="allow_autoconfirm"/>
+                            <field name="skip_vat_check"/>
+                            <field name="use_market_brand_fiscal_position"/>
                         </group>
                     </group>
                 </sheet>
