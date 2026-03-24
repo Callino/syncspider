@@ -39,7 +39,7 @@ class SyncHook(models.Model):
                 record_id = None
             try:
                 vals['record_id'] = int(record_id)
-            except:
+            except (ValueError, TypeError):
                 pass
             vals['model'] = modelname
 
@@ -73,63 +73,66 @@ class SyncEvent(models.Model):
 
     name = fields.Char('Name')
     hook_id = fields.Many2one('sync.hook', string="Sync Hook", required=True, ondelete='cascade')
-    done = fields.Boolean('Done', default=False)
+    done = fields.Boolean('Done', default=False, index=True)
     failed = fields.Boolean('Failed', default=False)
-    trycount = fields.Integer('Try count', default=0)
-    nexttry = fields.Datetime('Nexttry')
+    trycount = fields.Integer('Try count', default=0, index=True)
+    nexttry = fields.Datetime('Nexttry', index=True)
     payload = fields.Text('Payload')
     done_timestamp = fields.Datetime('Timestamp')
     last_http_code = fields.Char('HTTP Code')
     last_http_response = fields.Text('HTTP Response')
 
-    def unlink(self):
-        return super(SyncEvent, self).unlink()
+    def _process_single_event(self, event):
+        """Process a single sync event with its own cursor and transaction."""
+        new_cr = event.pool.cursor()
+        try:
+            event = event.with_env(event.env(cr=new_cr))
+            try:
+                response = requests.post(event.hook_id.webhook_url, json=json.loads(event.payload), timeout=(2, 10))
+                if response.status_code != 200:
+                    event.write({
+                        'trycount': event.trycount + 1,
+                        'nexttry': datetime.now() + timedelta(minutes=5*(event.trycount+1)),
+                        'last_http_response': response.text,
+                        'last_http_code': response.status_code,
+                        'failed': True,
+                        'done': False,
+                    })
+                else:
+                    event.write({
+                        'nexttry': None,
+                        'last_http_response': response.text,
+                        'last_http_code': response.status_code,
+                        'failed': False,
+                        'done': True,
+                        'done_timestamp': fields.Datetime.now(),
+                    })
+            except Timeout:
+                event.write({
+                    'trycount': event.trycount + 1,
+                    'nexttry': datetime.now() + timedelta(minutes=5 * (event.trycount + 1)),
+                    'last_http_response': 'Timeout',
+                    'failed': True,
+                    'done': False,
+                })
+            except Exception as e:
+                event.write({
+                    'nexttry': datetime.now() + timedelta(minutes=5 * (event.trycount + 1)),
+                    'trycount': event.trycount + 1,
+                    'last_http_response': str(e),
+                    'failed': True,
+                    'done': False,
+                })
+            new_cr.commit()
+        except Exception:
+            new_cr.rollback()
+        finally:
+            new_cr.close()
 
     def _do_http_request(self, events):
-        with api.Environment.manage():
-            # As this function is in a new thread, I need to open a new cursor, because the old one may be closed
-            new_cr = events.pool.cursor()
-            events = events.with_env(events.env(cr=new_cr))
-            for event in events:
-                try:
-                    response = requests.post(event.hook_id.webhook_url, json=json.loads(event.payload), timeout=(2, 10))
-                    if response.status_code != 200:
-                        event.write({
-                            'trycount': event.trycount + 1,
-                            'nexttry': datetime.now() + timedelta(minutes=5*(event.trycount+1)),
-                            'last_http_response': response.text,
-                            'last_http_code': response.status_code,
-                            'failed': True,
-                            'done': False,
-                        })
-                    else:
-                        event.write({
-                            'nexttry': None,
-                            'last_http_response': response.text,
-                            'last_http_code': response.status_code,
-                            'failed': False,
-                            'done': True,
-                        })
-                except Timeout:
-                    event.write({
-                        'trycount': event.trycount + 1,
-                        'nexttry': datetime.now() + timedelta(minutes=5 * (event.trycount + 1)),
-                        'last_http_response': 'Timeout',
-                        'failed': True,
-                        'done': False,
-                    })
-                except Exception as e:
-                    event.write({
-                        'nexttry': datetime.now() + timedelta(minutes=5 * (event.trycount + 1)),
-                        'trycount': event.trycount + 1,
-                        'last_http_response': str(e),
-                        'failed': True,
-                        'done': False,
-                    })
-
-            new_cr.commit()
-            new_cr.close()
-            return {}
+        """Process sync events in a background thread, one transaction per event."""
+        for event in events:
+            self._process_single_event(event)
 
     def run_async(self):
         # We do start a new environment in a new thread - and try the http request in this thread
@@ -140,7 +143,8 @@ class SyncEvent(models.Model):
     @api.model
     def cron_run_events(self):
         events = self.search([
-            ('nexttry', '<', datetime.now()),
+            ('done', '=', False),
+            ('nexttry', '<', fields.Datetime.now()),
             ('trycount', '<', 5),
         ])
         if events:
