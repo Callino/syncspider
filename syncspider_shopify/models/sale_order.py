@@ -11,18 +11,30 @@ _logger = logging.getLogger(__name__)
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
-    @api.depends('gateway')
+    @api.depends('gateway', 'company_id')
     def _get_shopify_gateway(self):
         for record in self:
-            if not record.gateway:
+            if not record.gateway or not record.gateway.strip():
                 record.gateway_id = False
                 continue
-            if not record.gateway.strip():
-                record.gateway_id = False
-                continue
-            gateway = self.env['shopify.gateway'].search([('name', '=', record.gateway.strip())], limit=1)
+            name = record.gateway.strip()
+            company = record.company_id or self.env.company
+            # Prefer a gateway in the order's company; fall back to a
+            # company-less gateway if no per-company entry exists yet.
+            gateway = self.env['shopify.gateway'].search([
+                ('name', '=', name),
+                ('company_id', '=', company.id),
+            ], limit=1)
             if not gateway:
-                gateway = self.env['shopify.gateway'].create({'name': record.gateway.strip()})
+                gateway = self.env['shopify.gateway'].search([
+                    ('name', '=', name),
+                    ('company_id', '=', False),
+                ], limit=1)
+            if not gateway:
+                gateway = self.env['shopify.gateway'].create({
+                    'name': name,
+                    'company_id': company.id,
+                })
             record.gateway_id = gateway.id
 
     gateway = fields.Char(string="Gateway", readonly=True)
@@ -112,6 +124,11 @@ class SaleOrder(models.Model):
 
     def action_confirm(self):
         orders_to_confirm = self.env['sale.order']
+        # Re-resolve the gateway so it picks up the per-company entry — the
+        # stored compute may be stale (e.g. order's company changed, or
+        # company-specific gateway was added after the order was created).
+        for order in self:
+            order._get_shopify_gateway()
         for order in self:
             order.check_global_discount()
             can_confirm = order.check_shopify_amount_total()
@@ -169,17 +186,27 @@ class SaleOrder(models.Model):
             amount = order.amount_received
             if not amount:
                 amount = order.amount_total
-            sapi = self.env['sale.advance.payment.inv'].with_context(active_ids=order.ids).create({
+            # Run the whole down-payment flow in the order's company context
+            # AND with the order's company in allowed_company_ids, otherwise
+            # the multi-company record rule on account.move blocks the
+            # subsequent action_post / payment register when the active user
+            # is currently working in a different company.
+            order_env = order.with_company(order.company_id).with_context(
+                allowed_company_ids=[order.company_id.id],
+            )
+            sapi = order_env.env['sale.advance.payment.inv'].with_context(
+                active_ids=order.ids,
+            ).create({
                 'advance_payment_method': 'fixed',
-                'fixed_amount': amount
+                'fixed_amount': amount,
             })
             sapi.sudo().create_invoices()
             if order.gateway_id.use_payment_ref and order.payment_ref:
-                order.invoice_ids.write({'invoice_origin': order.payment_ref})
+                order.invoice_ids.sudo().write({'invoice_origin': order.payment_ref})
             if order.gateway_id.payment_term_id:
                 order.payment_term_id = order.gateway_id.payment_term_id.id
             # disabled for review by customer
-            order.invoice_ids.action_post()
+            order.invoice_ids.sudo().action_post()
             for invoice in order.invoice_ids:
                 if not order.gateway_id.journal_id:
                     activity = self.env['mail.activity'].search([
@@ -201,8 +228,12 @@ class SaleOrder(models.Model):
                     continue
                 if (order.payment_status == "Partially paid") and not order.amount_received:
                     continue
-                apr = self.env['account.payment.register'].with_context(active_model='account.move',
-                                                                        active_ids=invoice.ids, no_payment_mail=True).create({
+                apr = self.env['account.payment.register'].sudo().with_company(order.company_id).with_context(
+                    active_model='account.move',
+                    active_ids=invoice.ids,
+                    no_payment_mail=True,
+                    allowed_company_ids=[order.company_id.id],
+                ).create({
                     # 'communication': self.payment_ref,
                     'journal_id': order.gateway_id.journal_id.id,
                     'payment_date': order.original_date or order.date_order
