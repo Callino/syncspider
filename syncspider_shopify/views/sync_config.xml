@@ -42,6 +42,11 @@
                             <field name="skip_vat_check"/>
                             <field name="use_market_brand_fiscal_position"/>
                         </group>
+                        <group string="Rechnungsversand">
+                            <field name="auto_send_down_payment_invoice"/>
+                            <field name="auto_send_remaining_invoice"/>
+                            <field name="invoice_mail_template_id"/>
+                        </group>
                     </group>
                 </sheet>
             </form>

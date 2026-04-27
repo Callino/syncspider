@@ -45,6 +45,22 @@ class SyncConfig(models.Model):
         default=False,
         help="Fiskalposition aus Market Brand bei Änderung setzen. Ursprünglich: 'SD' in self.name",
     )
+    auto_send_down_payment_invoice = fields.Boolean(
+        string="Anzahlungsrechnung automatisch versenden",
+        default=False,
+        help="Beim Bestätigen einer Anzahlungsrechnung wird diese automatisch per Mail an den Kunden versendet.",
+    )
+    auto_send_remaining_invoice = fields.Boolean(
+        string="Schlussrechnung mit Restbetrag automatisch versenden",
+        default=False,
+        help="Sobald eine Anzahlungsrechnung bezahlt ist, wird die Schlussrechnung auch dann automatisch gepostet und versendet, wenn noch ein Restbetrag offen ist (sonst nur bei 100% Anzahlung).",
+    )
+    invoice_mail_template_id = fields.Many2one(
+        'mail.template',
+        string="Rechnungs-Mailvorlage",
+        domain="[('model', '=', 'account.move')]",
+        help="Optional: Mailvorlage, die beim automatischen Versand von Rechnungen verwendet wird. Wenn leer, wird das Standard-Rechnungstemplate (account.email_template_edi_invoice) verwendet.",
+    )
     active = fields.Boolean(string="Aktiv", default=True)
 
     _sql_constraints = [
